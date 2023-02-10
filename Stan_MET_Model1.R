@@ -18,14 +18,15 @@ library(dplyr)
 library(rstan)
 
 # Loading data
-df <- read.csv("maize_dataset.csv", h = TRUE)
+#df <- read.csv("maize_dataset.csv", h = TRUE)
+df = df <- read.csv("MedCariocaBayes.csv", h = TRUE, sep = ";")
 
 # Defining Factors 
-df$M <- df$Region %>% as.factor        # Mega-Region
-df$B <- df$Block  %>% as.factor        # Block
-df$R <- df$Rep %>% as.factor           # Replicates
-df$H <- df$Hybrid %>% as.factor        # Genotypes
-df$L <- df$Location %>% as.factor      # Locations
+#df$M <- df$Region %>% as.factor        # Mega-Region
+#df$B <- df$Block  %>% as.factor        # Block
+#df$R <- df$Rep %>% as.factor           # Replicates
+df$H <- df$Families %>% as.factor        # Genotypes
+df$L <- df$id %>% as.factor      # Locations
 
 #----------------------------------------------Data for stan-------------------------------------------------#
 
@@ -33,34 +34,36 @@ df$L <- df$Location %>% as.factor      # Locations
 n <- df %>% nrow
 
 # Designs Matrices
-Z_1 <- model.matrix( ~ -1 + R:L, data = df)     # Replication effects
-Z_2 <- model.matrix( ~ -1 + B:L, data = df)     # Block effects
+#Z_1 <- model.matrix( ~ -1 + R:L, data = df)     # Replication effects
+#Z_2 <- model.matrix( ~ -1 + B:L, data = df)     # Block effects
 Z_3 <- model.matrix( ~ -1 + H, data = df)       # Genotype effects
 Z_4 <- model.matrix( ~ -1 + L, data = df)       # Location effects
 Z_5 <- model.matrix( ~ -1 + H:L, data = df)     # GEI effects
 
 # Number of columns for each design matrix
-p_1 <- ncol(Z_1)
-p_2 <- ncol(Z_2)
+#p_1 <- ncol(Z_1)
+#p_2 <- ncol(Z_2)
 p_3 <- ncol(Z_3)
 p_4 <- ncol(Z_4)
 p_5 <- ncol(Z_5)
 
 # Subset response variable
-y <- df$GY
+y <- df$prod
+#y = df$ag
+#y = df$arq
 
 # Create the known global hyperparameter:
 phi <- max(y) * 10
 
 # Create a list to store data for stan
 df_stan <- list(n = n,
-               p_1 = p_1,
-               p_2 = p_2,
+               #p_1 = p_1,
+               #p_2 = p_2,
                p_3 = p_3,
                p_4 = p_4,
                p_5 = p_5,
-               Z_1 = Z_1,
-               Z_2 = Z_2,
+               #Z_1 = Z_1,
+               #Z_2 = Z_2,
                Z_3 = Z_3,
                Z_4 = Z_4,
                Z_5 = Z_5,
@@ -75,15 +78,11 @@ stan_df <- "
     int<lower=1> n;
   
     // Number of parameters
-    int<lower=1> p_1;
-    int<lower=1> p_2;
     int<lower=1> p_3;
     int<lower=1> p_4;
     int<lower=1> p_5;
     
     // Designs matrices
-    matrix[n, p_1] Z_1;
-    matrix[n, p_2] Z_2;
     matrix[n, p_3] Z_3;
     matrix[n, p_4] Z_4;
     matrix[n, p_5] Z_5;
@@ -104,13 +103,6 @@ stan_df <- "
     real<lower=0> s_mu;
     real mu;
 
-    // Replication parameter/hyperparameters
-    real<lower=0> s_r;
-    vector[p_1] r;
-    
-    // Block parameter/hyperparameters
-    real<lower=0> s_b;
-    vector[p_2] b;
     
     // Genotype parameter/hyperparameters
     //real<lower=0> pi_s_g;
@@ -134,7 +126,7 @@ stan_df <- "
     vector[n] expectation;
     
     // Computing the expectation of the likelihood function
-    expectation = mu + Z_1*r + Z_2*b + Z_3*g + Z_4*l + Z_5*gl;
+    expectation = mu + Z_3*g + Z_4*l + Z_5*gl;
   } 
 
   model{
@@ -145,14 +137,6 @@ stan_df <- "
     // Conditional prior probabilities distributions for the mean
     s_mu ~ cauchy(0, phi);
     mu ~ normal(0, s_mu);
-    
-    // Conditional prior probabilities distributions for replications
-    s_r ~ cauchy(0, phi);
-    r ~ normal(0, s_r);
-    
-    // Conditional prior probabilities distributions for blocks
-    s_b ~ cauchy(0, phi);
-    b ~ normal(0, s_b);   
     
     // Conditional prior probabilities distributions  for genotypes
     s_g ~ cauchy(0, phi);

@@ -13,7 +13,6 @@
 ##                                                                                                                    ##
 ########################################################################################################################
 
-
 # Loading Library
 library(dplyr)
 library(rstan)
@@ -21,7 +20,7 @@ library(rstan)
 # Loading data
 #df <- read.csv("maize_dataset.csv", h = TRUE)
 df = df <- read.csv("MedCariocaBayes.csv", h = TRUE, sep = ";")
-df = df [243:484,]
+
 # Defining Factors 
 #df$M <- df$Region %>% as.factor        # Mega-Region
 #df$B <- df$Block  %>% as.factor        # Block
@@ -49,9 +48,9 @@ p_4 <- ncol(Z_4)
 p_5 <- ncol(Z_5)
 
 # Subset response variable
-#y<- df$prod
+y <- df$prod
 #y = df$ag
-y = df$arq
+#y = df$arq
 
 # Create the known global hyperparameter:
 phi <- max(y) * 10

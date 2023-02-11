@@ -20,7 +20,7 @@ library(rstan)
 # Loading data
 #df <- read.csv("maize_dataset.csv", h = TRUE)
 df = df <- read.csv("MedCariocaBayes.csv", h = TRUE, sep = ";")
-
+df = df [122:484,]
 # Defining Factors 
 #df$M <- df$Region %>% as.factor        # Mega-Region
 #df$B <- df$Block  %>% as.factor        # Block
@@ -48,8 +48,8 @@ p_4 <- ncol(Z_4)
 p_5 <- ncol(Z_5)
 
 # Subset response variable
-y <- df$prod
-#y = df$ag
+#y<- df$prod
+y = df$ag
 #y = df$arq
 
 # Create the known global hyperparameter:
@@ -196,12 +196,12 @@ gl_post <- out$gl
 y_gen_post <- out$y_gen
 
 # Subset the replicatin variance
-s2_r_post <- (out$s_r)^2
-mean(s2_r_post) # replication variance
+#s2_r_post <- (out$s_r)^2
+#mean(s2_r_post) # replication variance
 
 # Subset the block variance
-s2_b_post <- (out$s_b)^2
-mean(s2_b_post) # block variance
+#s2_b_post <- (out$s_b)^2
+#ean(s2_b_post) # block variance
 
 # Subset the genotype (genetic) variance
 s2_g_post <- (out$s_g)^2
@@ -223,10 +223,10 @@ mean(sigma)
 source('get_map.R') # Function to obtain the maximum a posteriori (MAP) value
 
 # For the replication effects
-r_map <- get_map(r_post)
+#r_map <- get_map(r_post)
 
 # For the block effects
-b_map <- get_map(b_post)
+#b_map <- get_map(b_post)
 
 # For the genotype effects
 g_map <- get_map(g_post)
@@ -235,7 +235,7 @@ g_map <- get_map(g_post)
 gl_map <- get_map(gl_post)
 
 # Save 
-save.image("Model1.RData")
+save.image("BayesianaAg.RData")
 
 
 

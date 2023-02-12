@@ -20,10 +20,10 @@ library(rstan)
 library(stringr)
 
 # Reading output from stan (MET model)
-setwd("/Users/tiagobchagas/Documents/ProgFeijaoUFV/ProgFeijaoUFV/Bayesiana/")
+setwd("/Users/tiagobchagas/Desktop/plots tese")
 # Load
 list.files()
-load("BayesianaArq.RData")
+load("BayesianaArq1.RData")
 
 ##################################################################
 print(names(out))
@@ -54,10 +54,10 @@ data_plot_hat <- data.frame(y = c(y_gen_post),
 # Merge data
 data_fig1 = rbind(data_plot, data_plot_hat)
 
-x_lab <- "Adjusted means"
+x_lab <- "Adjusted means ARQ"
 y_lab <- "Density"
 #x_title <- ""
-x_title <- "A: Observed against generated data"
+x_title <- "A: Observed against generated data ARQ"
 (p1A <- ggplot(data_fig1, aes(x = y, colour = type)) + 
                 geom_density() + 
                 stat_density(geom = "line", position = "identity", show.legend = TRUE) +
@@ -71,7 +71,7 @@ x_title <- "A: Observed against generated data"
                 theme(legend.title = element_blank(), 
                       legend.position = c(0.8, 0.80),
                       legend.text = element_text(face = "bold", size = 6.5)) +
-                ylim(0, 0.15) + labs(x = x_lab, y = y_lab, title = x_title)) 
+                ylim(0, 1.5) + labs(x = x_lab, y = y_lab, title = x_title)) 
 
 # Save Plot
 ggsave(plot = p1A, filename = "p1A.tiff", device = "tiff", scale = 1, dpi = "retina")
@@ -88,26 +88,59 @@ dim(g_post)
 colnames(g_post) = levels(df$H)
 # Check Genotype order
 all(gsub("H*", "", colnames(Z_3), perl = TRUE) == levels(df$H))
-
+#testemunhas
+g_postChecks <- as_tibble(g_post[,118:121])
+rm(g_postChecks)
 # PLots
-x_lab <- "Genetic values"
+x_lab <- "Genetic values ARQ"
 y_lab <- "Families derived from Cycle III Recurrent Selection"
 x_title <- "B: 95 % Highest posterior density interval"
-
+levels(df$H)
 # Plot 
 (p1B <- ggs_caterpillar(ggs(as.mcmc(g_post))) +
         theme_bw() +
         theme(axis.title.x = element_text(size = 11, face = "bold", color = "black"), 
                 axis.title.y = element_text(size = 11, face = "bold", color = "black"), 
                 axis.text.x = element_text(size = 7, face = "bold", color = "black"), 
-                axis.text.y = element_text(size = 6, face = "bold", color = "black")) + 
+                axis.text.y = element_text(size = 4, face = "bold", color = "black")) + 
         theme(plot.title = element_text(size = 11, hjust = 0.5, face = "bold")) +
-                labs(fill = legend, size = 12) +
+                labs(fill = legend, size = 12) + 
         labs(x = x_lab, y = y_lab, title = x_title))
+
+
+
+# Install the gghighlight package
+
+#install.packages("gghighlight")
+library(gghighlight)
+
+# Create the highlighted graph
+
+#ggplot(groupSummaries, aes(month, N, colour = Event.Clearance.SubGroup)) +
+ # geom_line() + 
+  #gghighlight(max(N) > 95,  label_key = Event.Clearance.SubGroup) +  
+  #scale_x_discrete(name ="Month", 
+ #                  limits=c(3,6,9,12))
+#dta <- data.frame(date    = rep(seq.Date(as.Date("2010-01-01"), as.Date("2010-12-01"), "months"), 26),
+  #                premium = rnorm(12*26),
+   #               State   = rep(letters, each = 12))
+
+library(ggplot2)
+
+
+#p_plot <- ggplot(data = dta) + 
+ # geom_line(aes(x = date, y = premium, group = State), colour = "grey60")
+
+#p_plot + geom_line(aes(x = unique(date), y = as.numeric(tapply(premium, date, mean)), colour = "mean"),
+   #                size = 1.25) +
+  #geom_line(aes(x = unique(date), y = as.numeric(tapply(premium, date, median)), colour = "median"),
+ #           size = 1.25) + ylab("Pe/pg") +  scale_color_discrete("stats")
+
+#p_plot
 
 # Save Plot
 ggsave(plot = p1B, filename = "p1B.tiff", device = "tiff", scale = 1, dpi = "retina")
-#ggsave(plot = p1B, filename = "p1B.pdf", device = "pdf", scale = 2, dpi = "retina")
+ggsave(plot = p1B, filename = "p1B.pdf", device = "pdf", scale = 2, dpi = "retina")
 
 ############## global stability ############
 
@@ -120,7 +153,7 @@ dim(ind_post)
 
 # Loop for each environment
 for (s in 1:nrow(g_post)){
-        top20 = order(g_post[s,], decreasing = TRUE)[1:ceiling(0.2*length(g_post[s,]))]
+        top20 = order(g_post[s,], decreasing = F)[1:ceiling(0.2*length(g_post[s,]))]
         ind_post[s,top20]  = 1
         ind_post[s,-top20] = 0
 }
@@ -138,8 +171,8 @@ prob_g$ID = factor(prob_g$ID, levels = prob_g$ID)
 # note: stroke exists only for shapes between 1 and 24
 
 x_lab <- "Families derived Cycle III Recurrent Selection"
-y_lab <- "Probability of superior performance"
-x_title <- "C: Marginal probability of superior performance"
+y_lab <- "Probability of superior performance ARQ"
+x_title <- "C: Marginal probability of superior performance ARQ"
 
 # Plot 
 (p1C = ggplot(prob_g, aes(x = ID, y = prob_g)) +
@@ -183,7 +216,7 @@ table[1:5, 1:5]
 
 # Order the table according to genotype marginal effect
 index <- data.frame(treat = 1:dim(g_post)[2], g_post = apply(g_post, 2, mean))
-index <- index[order(index$g_post, decreasing = TRUE),]
+index <- index[order(index$g_post, decreasing = F),]
 index[1:5,]
 
 # Order
@@ -196,8 +229,8 @@ table = melt(table)
 
 
 x_lab <- "Families derived Cycle III Recurrent Selection"
-y_lab <- "Families derived Cycle III Recurrent Selection"
-x_title <- "D: Pairwise probability of superior performance"
+y_lab <- "Families derived Cycle III Recurrent Selection ARQ"
+x_title <- "D: Pairwise probability of superior performance ARQ"
 
 # Plot
 (p1D <- ggplot(table, aes(Var1, Var2)) +
@@ -246,7 +279,7 @@ dim(ind_post)
 all(gsub("*L", "", colnames(Z_4)) == levels(df$L))
 
 # Combination of regions and locations:
-#map = paste0(levels(df$M), "_", paste("E", 1:16, sep = ""))
+map = paste0(levels(df$M), "_", paste("E", 1:16, sep = ""))
 map = paste0(rep(levels(df$M), times = c(3,2,4,4,3)), "_", paste("E", 1:16, sep = ""))
 map
 
@@ -264,20 +297,20 @@ dim(g_post)
 # Loop
 for (s in 1:nrow(g_post)){
         # Creating a matrix with genotypes on the rows and regions on the columns:
-        #GM = matrix(gm_post[s,], n_g)# n_m)
-        #colnames(GM) = levels(df$M)
+        GM = matrix(gm_post[s,], n_g, n_m)
+        colnames(GM) = levels(df$M)
         # Initialize matrix to receive values:
         GGE = matrix(NA, n_g, n_l)
         rownames(GGE) = levels(df$H)
         colnames(GGE) = levels(df$L)
         for (m in 1:n_m) {
                 # Subset the name of the region:  
-                #subset = levels(df$M)[m]
+                subset = levels(df$M)[m]
                 # Create mask to subset only the environments related to that specific region:
-                #mask = str_detect(map, subset)
+                mask = str_detect(map, subset)
                 # Sum GL nested on R with GR interaction:
-                #GGE[,mask] = matrix(rep(g_post[s,], sum(mask)), ncol = sum(mask)) + 
-                        m#atrix(gl_post[s,], n_g, n_l)[,mask] + matrix(GM[,subset], n_g, sum(mask))
+                GGE[,mask] = matrix(rep(g_post[s,], sum(mask)), ncol = sum(mask)) + 
+                        matrix(gl_post[s,], n_g, n_l)[,mask] + matrix(GM[,subset], n_g, sum(mask))
               }
         for (k in 1:n_l) {
                 # Initialize matrix:
@@ -384,7 +417,7 @@ for(s in 1:n_sim){
 
 
 # Initialize matrix to receive the probabilities:
-prob_stab_ggm = matrix(NA, n_g) #n_m)
+prob_stab_ggm = matrix(NA, n_g,n_m)
 rownames(prob_stab_ggm) = levels(df$H)
 colnames(prob_stab_ggm) = levels(df$M)
 
@@ -575,15 +608,15 @@ Z_ind = quantile(g_post, probs = 0.95)
 
 ## Risk Prob
 Risk = round(g_i - (Z_ind*(Vi)),2)
-Risk = data.frame(Risk, ID = paste("G", 1:121, sep = ""))
-Risk = Risk[order(Risk$Risk, decreasing = TRUE),]
+Risk = data.frame(Risk, ID = paste0(levels(df$H), sep = "")) 
+Risk = Risk[order(Risk$Risk, decreasing = F),]
 
 # Changing order of the levels
 Risk$ID = factor(Risk$ID, levels = Risk$ID)
 
 x_lab <- "Families derived Cycle III Recurrent Selection"
 y_lab <- "Safety-first index"
-x_title <- "A: Bayesian Eskridge Risk index"
+x_title <- "A: Bayesian Eskridge Risk index ARQ"
 dev.off()
 
 # Plot 
@@ -617,7 +650,7 @@ ind_post = matrix(NA, nrow(g_post), ncol(g_post))
 
 # Loop for each environment
 for (s in 1:nrow(g_post)){
-        top20 = order(g_post[s,], decreasing = TRUE)[1:ceiling(0.2*length(g_post[s,]))]
+        top20 = order(g_post[s,], decreasing = F)[1:ceiling(0.2*length(g_post[s,]))]
         ind_post[s,top20]  = 1
         ind_post[s,-top20] = 0
 }
@@ -633,18 +666,18 @@ map
 # Loop per MCMC
 for(s in 1:nrow(g_post)){
         # Creating a matrix with genotypes on the rows and regions on the columns:
-       # GM = matrix(gm_post[s,], n_g, n_m)
-        #colnames(GM) = levels(df$M)
+       GM = matrix(gm_post[s,], n_g, n_m)
+        colnames(GM) = levels(df$M)
         # Initialize matrix to receive values:
         GE = matrix(NA, n_g, n_l)
         # Loop per region
         for(m in 1:n_m) {
                 # Subset the name of the region:  
-                #subset = levels(df$M)[m]
+                subset = levels(df$M)[m]
                 # Create mask to subset only the environments related to that specific region:
-                #mask = str_detect(map, subset)
+                mask = str_detect(map, subset)
                 # Sum GL nested on R with GR interaction:
-              #  GE[,mask] = matrix(gl_post[s,], n_g, n_l)[,mask] + matrix(GM[,subset], n_g, sum(mask))
+              GE[,mask] = matrix(gl_post[s,], n_g, n_l)[,mask] + matrix(GM[,subset], n_g, sum(mask))
         }
         # Building the indicators
         var_GE = apply(GE,1,var)
@@ -680,7 +713,7 @@ fillcolors <- c("#1b7837", "#d73027", "#313695")
 
 x_lab <- 'Families derived Cycle III Recurrent Selection'
 y_lab <- 'Probabilities'
-x_title <- "B: Joint probability of superior performance and stability"
+x_title <- "B: Joint probability of superior performance and stability ARQ"
 
 
 # Plot
